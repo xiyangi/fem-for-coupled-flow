@@ -1,0 +1,239 @@
+int j=4;
+real[int] dt(j), alpha(j),dh(j);
+real [int] uH1er(j),pH1er(j),nH1er(j),cH1er(j),pL2er(j),divu(j),uL2er(j),nL2er(j),cL2er(j);
+real nu=1,Tend=0.1,lamda=1,mu1=1,mu2=1,kappa1=1,kappa2=1;
+/////////////////////////////////
+func u1exact = 10*x^2*(x-1)^2*y*(y-1)*(2*y-1);  //*cos(t);
+func u2exact =-10*x*(x-1)*(2*x-1)*y^2*(y-1)^2;  //*cos(t);
+func  pexact = 10*(2*x-1)*(2*y-1);  //*cos(t);
+func  nexact=  10*x^2*(x-1)^2*y*(y-1)*(2*y-1);//*cost
+func  cexact=  -10*x*(x-1)*(2*x-1)*y^2*(y-1)^2; //*cost
+func fc=10*(10*x^2*(x-1)^2*y*(y-1)*(2*y-1))^2;
+//func  Xc=10*(10*x^2*(x-1)^2*y*(y-1)*(2*y-1))^2;
+func  Xc=10*(10*x^2*(x-1)^2*y*(y-1)*(2*y-1))^2;
+func   rightphi= -10*y;
+func u1exactdx  = 20*x*(x-1)^2*y*(y-1)*(2*y-1)+20*x^2*(x-1)*y*(y-1)*(2*y-1);  //*cos(t);*x^2*(x-1)*y*(2*y-1)+40*x^2*(x-1)*y*(y-1);
+func u1exactdxx = 20*(x-1)^2*y*(y-1)*(2*y-1)+80*x*(x-1)*y*(y-1)*(2*y-1)+20*x^2*y*(y-1)*(2*y-1);  //*cos(t);
+func u1exactdy  = 10*x^2*(x-1)^2*(y-1)*(2*y-1)+10*x^2*(x-1)^2*y*(2*y-1)+20*x^2*(x-1)^2*y*(y-1);  //*cos(t);
+func u1exactdyy = 20*x^2*(x-1)^2*(2*y-1)+40*x^2*(x-1)^2*(y-1)+40*x^2*(x-1)^2*y;  //*cos(t);
+
+func u1exactdxdy= 20*x*(x-1)^2*(y-1)*(2*y-1)+20*x*(x-1)^2*y*(2*y-1)+40*x*(x-1)^2*y*(y-1)+20*x^2*(x-1)*(y-1)*(2*y-1)+20*x^2*(x-1)*y*(2*y-1)+40*x^2*(x-1)*y*(y-1);
+
+func u2exactdx  = -10*(x-1)*(2*x-1)*y^2*(y-1)^2-10*x*(2*x-1)*y^2*(y-1)^2-20*x*(x-1)*y^2*(y-1)^2;  //*cos(t);
+func u2exactdxx = -20*(2*x-1)*y^2*(y-1)^2-40*(x-1)*y^2*(y-1)^2-40*x*y^2*(y-1)^2;  //*cos(t);
+func u2exactdy  = -20*x*(x-1)*(2*x-1)*y*(y-1)^2-20*x*(x-1)*(2*x-1)*y^2*(y-1);  //*cos(t);
+func u2exactdyy = -20*x*(x-1)*(2*x-1)*(y-1)^2-80*x*(x-1)*(2*x-1)*y*(y-1)-20*x*(x-1)*(2*x-1)*y^2;  //*cos(t);
+func u2exactdxdy= -20*(x-1)*(2*x-1)*y*(y-1)^2-20*(x-1)*(2*x-1)*y^2*(y-1)-20*x*(2*x-1)*y*(y-1)^2-20*x*(2*x-1)*y^2*(y-1)-40*x*(x-1)*y*(y-1)^2-40*x*(x-1)*y^2*(y-1);
+
+func pexactdx = 40*y-20;  //*cos(t);
+func pexactdy = 40*x-20;  //*cos(t);
+
+
+func nexactdx  = 20*x*(x-1)^2*y*(y-1)*(2*y-1)+20*x^2*(x-1)*y*(y-1)*(2*y-1);  //*cos(t);*x^2*(x-1)*y*(2*y-1)+40*x^2*(x-1)*y*(y-1);
+func nexactdxx = 20*(x-1)^2*y*(y-1)*(2*y-1)+80*x*(x-1)*y*(y-1)*(2*y-1)+20*x^2*y*(y-1)*(2*y-1);  //*cos(t);
+func nexactdy  = 10*x^2*(x-1)^2*(y-1)*(2*y-1)+10*x^2*(x-1)^2*y*(2*y-1)+20*x^2*(x-1)^2*y*(y-1);  //*cos(t);
+func nexactdyy = 20*x^2*(x-1)^2*(2*y-1)+40*x^2*(x-1)^2*(y-1)+40*x^2*(x-1)^2*y;  //*cos(t);
+
+func cexactdx  = -10*(x-1)*(2*x-1)*y^2*(y-1)^2-10*x*(2*x-1)*y^2*(y-1)^2-20*x*(x-1)*y^2*(y-1)^2;  //*cos(t);
+func cexactdxx = -20*(2*x-1)*y^2*(y-1)^2-40*(x-1)*y^2*(y-1)^2-40*x*y^2*(y-1)^2;  //*cos(t);
+func cexactdy  = -20*x*(x-1)*(2*x-1)*y*(y-1)^2-20*x*(x-1)*(2*x-1)*y^2*(y-1);  //*cos(t);
+func cexactdyy = -20*x*(x-1)*(2*x-1)*(y-1)^2-80*x*(x-1)*(2*x-1)*y*(y-1)-20*x*(x-1)*(2*x-1)*y^2;  //*cos(t);
+func cexactdxdy= -20*(x-1)*(2*x-1)*y*(y-1)^2-20*(x-1)*(2*x-1)*y^2*(y-1)-20*x*(2*x-1)*y*(y-1)^2-20*x*(2*x-1)*y^2*(y-1)-40*x*(x-1)*y*(y-1)^2-40*x*(x-1)*y^2*(y-1);
+
+
+func real pe (real t)  { return cos(t)*pexact;}
+func real pedx (real t)  { return cos(t)*pexactdx;}
+func real pedy (real t)  { return cos(t)*pexactdy;}
+func real u1e(real t)  { return cos(t)*u1exact;}
+func real u2e(real t)  { return cos(t)*u2exact;}
+func real u1dx(real t){ return cos(t)*u1exactdx;}
+func real u1dy(real t){ return cos(t)*u1exactdy;}
+func real u2dx(real t){ return cos(t)*u2exactdx;}
+func real u2dy(real t){ return cos(t)*u2exactdy;}
+
+func real ne(real t){ return cos(t)*nexact;}
+func real nedx(real t){ return cos(t)*nexactdx;}
+func real nedy(real t){ return cos(t)*nexactdy;}
+func real ce(real t){ return cos(t)*cexact;}
+func real cedx(real t){ return cos(t)*cexactdx;}
+func real cedy(real t){ return cos(t)*cexactdy;}
+
+
+
+func real ff1(real t){ return -sin(t)*nexact-(kappa1*u1exactdxx+kappa2*u1exactdyy)*cos(t)+(u1exact*u1exactdx+u2exact*u1exactdy)*(cos(t))^2+cos(t)*nexact*(Xc*cexactdx^2+Xc*cexactdxx)+cos(t)*nexact*(Xc*cexactdy^2+Xc*cexactdyy); }
+func real ff2(real t){ return -sin(t)*cexact-(kappa1*u2exactdxx+kappa2*u2exactdyy)*cos(t)+(u1exact*u2exactdx+u1exact*u2exactdy)*(cos(t))^2+nexact*fc*cos(t); }
+//func real ff3(real t){ return -sin(t)*u1exact-(mu1*u1exactdxx+mu2*u1exactdyy)*cos(t)+(u1exact*u1exactdx+u2exact*u1exactdy)*(cos(t))^2+pexactdx*cos(t)-nexact*cos(t)*0; }
+//func real ff4(real t){ return -sin(t)*u2exact-(mu1*u2exactdxx+mu2*u2exactdyy)*cos(t)+(u1exact*u2exactdx+u2exact*u2exactdy)*(cos(t))^2+pexactdy*cos(t)-nexact*cos(t)*rightphi; } 
+   
+
+for(int j1=0;j1<j;j1++)
+{ 
+  real t=0;
+  real N; 
+  N=10*(j1+1);
+  dh[j1]=1/(N);
+  
+
+   
+mesh  Th = square(N,N); 
+ 
+      
+real cpu = clock(),cputime,epsi=1e-8; 
+
+fespace Xh(Th,P2);  Xh u1,u2,v1,v2,u1old=u1exact,u2old= u2exact;//
+Xh f1,f2;
+fespace Mh(Th,P1);  Mh p, q, pold=pexact;
+fespace Mnh(Th,P1);  Mnh soun, w, sounold=nexact; 
+fespace Mch(Th,P1); Mch souc,g,soucold=cexact;
+
+ 
+
+ dt[j1] = dh[j1]^2;
+ alpha[j1]=1/dt[j1];  
+
+for (int m=0;m<Tend/dt[j1];m++)
+{ 
+      t = t+dt[j1];
+
+
+     f1=ff1(t);
+     f2=ff2(t); 
+     func f3= -sin(t)*u1exact-(mu1*u1exactdxx+mu2*u1exactdyy)*cos(t)+(u1exact*u1exactdx+u2exact*u1exactdy)*(cos(t))^2+pexactdx*cos(t)-nexact*cos(t)*0;
+     func f4=-sin(t)*u2exact-(mu1*u2exactdxx+mu2*u2exactdyy)*cos(t)+(u1exact*u2exactdx+u2exact*u2exactdy)*(cos(t))^2+pexactdy*cos(t)-nexact*cos(t)*rightphi;
+
+
+solve CC1 ([u1,u2,p],[v1,v2,q]) =  
+     int2d(Th)( alpha[j1]*(u1*v1+u2*v2) )  //dt(u) 
+   - int2d(Th)( alpha[j1]*(u1old*v1+u2old*v2)     ) //conserved form  
+   + int2d(Th)( ( mu1*dx(u1)*dx(v1)+mu2*dy(u1)*dy(v1)+mu1*dx(u2)*dx(v2)+mu2*dy(u2)*dy(v2) )   )  //a(u,v)
+   + int2d(Th)( (u1old*v1*dx(u1)+u2old*v1*dy(u1)+u1old*v2*dx(u2)+u2old*v2*dy(u2)) )//3 linear terms
+    - int2d(Th)(sounold*rightphi*v2)// -n*phi
+   - int2d(Th)( (dx(v1)+dy(v2))*p +epsi*p*q) //d(v,p)
+   + int2d(Th)(dx(u1)*q+dy(u2)*q)
+   - int2d(Th)(f3*v1+f4*v2)
+   
+    + on(1,2,3,4,u1=10*x^2*(x-1)^2*y*(y-1)*(2*y-1)*cos(t), u2=-10*y^2*(y-1)^2*x*(x-1)*(2*x-1)*cos(t),p=10*(2*x-1)*(2*y-1)*cos(t));
+
+solve CC2 ([souc],[g]) =  
+     int2d(Th)( alpha[j1]*(souc*g) )  //dt(c) 
+   - int2d(Th)( alpha[j1]*(soucold*g)     ) //Laplace  
+   + int2d(Th)( ( kappa1*dx(souc)*dx(g)+kappa2*dy(souc)*dy(g) )   )  //a(u,v)
+      + int2d(Th)( (u1*g*dx(souc)+u2*g*dy(souc) ))//3 linear terms
+       +int2d(Th)(sounold*10*(soucold)^2*g)   
+   - int2d(Th)(f2*g)   
+    + on ( 1,2,3,4,souc=cexact*cos(t) );
+  
+soucold=souc;
+solve CC3 ([soun],[w]) =  
+     int2d(Th)( alpha[j1]*(soun*w) )  //dt(n) 
+  - int2d(Th)( alpha[j1]*(sounold*w)     ) // 
+   + int2d(Th)( ( kappa1*dx(soun)*dx(w)+kappa2*dy(soun)*dy(w) )   )  //Laplace
+      + int2d(Th)( (u1*w*dx(soun)+u2*w*dy(soun)))//u.tidu~v
+     + int2d(Th)( (dx(soucold)*dx(soun)+dy(soucold)*dy(soun))*w*10*soucold*soucold)//
+     //+ int2d(Th)( (dx(souc)*dx(soun)+dy(souc)*dy(soun))*w*10*soucold*soucold)/ 
+     - int2d(Th)(f1*w)   + on(1,2,3,4,soun=nexact*cos(t));
+
+                   
+
+    
+                
+
+ u1old = u1;
+ u2old = u2;
+pold = p;
+sounold=soun;
+soucold=souc;
+
+func pet    = pe(t);
+func petdx    = pedx(t);
+func petdy    = pedy(t);
+func u1et   = u1e(t);
+func u2et   = u2e(t);
+func u1etdx =u1dx(t);
+func u1etdy =u1dy(t);
+func u2etdx =u2dx(t);
+func u2etdy =u2dy(t); 
+func net    = ne(t);
+func netdx  = nedx(t);                
+func netdy  = nedy(t);
+func cet    = ce(t);
+func cetdx  = cedx(t);                
+func cetdy  = cedy(t);
+
+uH1er[j1]     = sqrt(int2d(Th)((dx(u1)-u1etdx)^2+(dy(u1)-u1etdy)^2+(dx(u2)-u2etdx)^2+(dy(u2)-u2etdy)^2))/sqrt(int2d(Th)(u1etdx^2+u2etdx^2+u1etdy^2+u2etdy^2));
+pH1er[j1]     = sqrt(int2d(Th)((dx(p)-petdx)^2+(dy(p)-petdy)^2))/sqrt(int2d(Th)(petdx^2+petdy^2));
+nH1er[j1]     = sqrt(int2d(Th)((dx(soun)-netdx)^2+(dy(soun)-netdy)^2))/sqrt(int2d(Th)(netdx^2+netdy^2));
+cH1er[j1]     = sqrt(int2d(Th)((dx(souc)-cetdx)^2+(dy(souc)-cetdy)^2))/sqrt(int2d(Th)(cetdx^2+cetdy^2));
+uL2er[j1]   = sqrt(int2d(Th)((u1-u1et)^2+(u2-u2et)^2)  )/sqrt(int2d(Th)(u1et^2+u2et^2));
+pL2er[j1]   = sqrt(int2d(Th)((p-pet)^2))/sqrt(int2d(Th)(pet^2));
+divu[j1]    = int2d(Th)(abs((dx(u1)+dy(u2))));
+nL2er[j1]   = sqrt(int2d(Th)((soun-net)^2))/sqrt(int2d(Th)(net^2));
+cL2er[j1]   = sqrt(int2d(Th)((souc-cet)^2))/sqrt(int2d(Th)(cet^2));
+
+
+cout << N<<" t="<< t<<endl;
+
+
+
+}
+cout<<"####################"<<endl;
+cout << "dt="<< dt[j1]<<" t="<< t<<"  j="<<j1<< endl;
+cout<<"uH1 = " << uH1er[j1]<<endl;
+cout<<"uL2 = " << uL2er[j1]<<endl;
+cout<<"pL2 = " << pL2er[j1]<<endl;
+cout<<"nL2 = " << nL2er[j1]<<endl;
+cout<<"cL2 = " << cL2er[j1]<<endl;
+
+cout<<"U-----H1 relative error:  "<<uH1er[j1] <<endl;
+cout<<"U-----L2 relative error:  "<<uL2er[j1] <<endl;
+cout<<"P-----L2 relative error:  "<<pL2er[j1] <<endl;
+cout<<"n-----L2 relative error:  "<<nL2er[j1] <<endl;
+cout<<"c-----L2 relative error:  "<<cL2er[j1] <<endl;
+cout<<"####################"<<endl;
+cout<<uH1er.max<<endl;
+cout<<pL2er.max<<endl;
+cout<<nL2er.max<<endl;
+cout<<cL2er.max<<endl;
+cout<<clock()-cpu<<endl;
+
+}
+
+cout<<"-----------------------------------"<<endl;
+cout<<"--------------space---------------------"<<endl;
+
+cout<<"dh"<<"        "<<"        uL2er"<<"   "<<"            "<<"pL2er"<<"            "<<"nL2err" <<"     "<<"cL2err"<<endl;
+cout<<dh[0]<<"        "<<"-        "<<"        "<<"            "<<"-        "<<"        "<<"-         " <<" " <<endl;
+
+
+
+
+for (int i1=0; i1<j-1; i1++)
+{
+cout <<dh[i1+1]<<"        "<<log(uL2er[i1]/uL2er[i1+1])/log(dh[i1]/dh[i1+1]) <<"        "<<log(pL2er[i1]/pL2er[i1+1])/log(dh[i1]/dh[i1+1]) <<"            "<<log(nL2er[i1]/nL2er[i1+1])/log(dh[i1]/dh[i1+1]) <<"         "<< log(cL2er[i1]/cL2er[i1+1])/log(dh[i1]/dh[i1+1])  <<endl;
+ 
+}
+
+
+
+
+
+
+
+
+//cout<<"dh"<<"        "<<"        uL2e"<<"   "<<"            "<<"pL2e"<<"            "<<"nL2e" <<"     "<<"cL2e"<<endl;
+//for (int i1=0; i1<=j; i1++)
+//{
+//cout <<dh[i1]<<"        "<<uL2er[i1] <<"        "<<pL2er[i1] <<"            "<<nL2er[i1] <<"         "<< cL2er[i1] <<endl;
+ 
+//}
+
+cout<<"-----------------------------------"<<endl;
+cout<<"--------------space---------------------"<<endl;
+cout<<"dh"<<"        "<<"        uH1er"<<"   "<<"            "<<"pH1er"<<"            "<<"nH1err" <<"     "<<"cH1err"<<endl;
+cout<<dh[0]<<"        "<<"-        "<<"        "<<"            "<<"-        "<<"        "<<"-         " <<" " <<endl;
+
+for (int i1=0; i1<j-1; i1++)
+{
+cout <<dh[i1+1]<<"        "<<log(uH1er[i1]/uH1er[i1+1])/log(dh[i1]/dh[i1+1]) <<"        "<<log(pH1er[i1]/pH1er[i1+1])/log(dh[i1]/dh[i1+1]) <<"            "<<log(nH1er[i1]/nH1er[i1+1])/log(dh[i1]/dh[i1+1]) <<"         "<< log(cH1er[i1]/cH1er[i1+1])/log(dh[i1]/dh[i1+1])  <<endl;
+ 
+}
