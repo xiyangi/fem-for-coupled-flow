@@ -42,7 +42,7 @@ func real Tedy(real t){ return cos(t)*Texactdy;}
 
 func real ff1(real t){ return -sin(t)*u1exact-(mu1*u1exactdxx+mu2*u1exactdyy)*cos(t)+(u1exact*u1exactdx+u2exact*u1exactdy)*(cos(t))^2+pexactdx*cos(t); }
 func real ff2(real t){ return -sin(t)*u2exact-(mu1*u2exactdxx+mu2*u2exactdyy)*cos(t)+(u1exact*u2exactdx+u2exact*u2exactdy)*(cos(t))^2+pexactdy*cos(t)-Texact*cos(t); }      
-func real ff3(real t){ return -sin(t)*Texact-(kappa1*Texactdxx+kappa2*Texactdyy)*cos(t)+(Texact*Texactdx+Texact*Texactdy)*(cos(t))^2; }
+func real ff3(real t){ return -sin(t)*Texact-(kappa1*Texactdxx+kappa2*Texactdyy)*cos(t)+(u1exact*Texactdx+u2exact*Texactdy)*(cos(t))^2; }
 
 for(int j1=0;j1<j;j1++)
 { 
