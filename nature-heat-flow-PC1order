@@ -1,6 +1,6 @@
 int j=4;
 real[int] dt(j), alpha(j),dh(j);
-real [int] uH1(j),pL2er(j),divu(j),uL2er(j),TL2er(j);
+real [int] uH1(j),pL2er(j),divu(j),uL2er(j),TL2er(j), alltime(j);
 real nu=1,Tend=0.1,lamda=1,mu1=1,mu2=1,kappa1=1,kappa2=1;
 /////////////////////////////////
 func u1exact = 10*x^2*(x-1)^2*y*(y-1)*(2*y-1);  //*cos(t);
@@ -141,6 +141,7 @@ cout << N<<" t="<< t<<endl;
 
 
 }
+alltime[j1]=clock()-cpu;
 cout<<"####################"<<endl;
 cout << "dt="<< dt[j1]<<" t="<< t<<"  j="<<j1<< endl;
 cout<<"uH1 = " << uH1[j1]<<endl;
@@ -159,6 +160,7 @@ cout<<clock()-cpu<<endl;
 
 }
 
+cout<<"CPUtime= "<<alltime<<endl;
 cout<<"-----------------------------------"<<endl;
 cout<<"--------------space---------------------"<<endl;
 
@@ -181,3 +183,8 @@ for (int i1=0; i1<=j; i1++)
 cout <<dh[i1]<<"        "<<uL2er[i1] <<"        "<<uH1[i1] <<"            "<<pL2er[i1] <<"         "<< TL2er[i1] <<endl;
  
 }
+
+
+
+
+
