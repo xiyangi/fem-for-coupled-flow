@@ -1,6 +1,6 @@
 int j=4;
 real[int] dt(j), alpha(j),dh(j);
-real [int] uH1(j),pL2er(j),divu(j),uL2er(j),TL2er(j),alltime[j];
+real [int] uH1(j),pL2er(j),divu(j),uL2er(j),TL2er(j),alltime(j);
 real nu=1,Tend=0.1,lamda=1,mu1=0.6,mu2=0.5,kappa1=0.7,kappa2=0.8;
 /////////////////////////////////
 func u1exact = 10*x^2*(x-1)^2*y*(y-1)*(2*y-1);  //*cos(t);
@@ -48,7 +48,7 @@ for(int j1=0;j1<j;j1++)
 { 
   real t=0;
   real N; 
-  N=5*(j1+1);
+  N=10*(j1+1);
   dh[j1]=1/(N);
   
 
@@ -165,4 +165,5 @@ for (int i1=0; i1<=j; i1++)
 cout <<dh[i1]<<"        "<<uL2er[i1] <<"        "<<uH1[i1] <<"            "<<pL2er[i1] <<"         "<< TL2er[i1] <<endl;
  
 }
+
 
