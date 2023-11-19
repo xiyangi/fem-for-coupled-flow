@@ -141,7 +141,7 @@ cout<<TL2er.max<<endl;
 cout<<clock()-cpu<<endl;
 
 }
-cout<<c"Cputime"<<alltime<<endl;
+cout<<"Cputime"<<alltime<<endl;
 cout<<"-----------------------------------"<<endl;
 cout<<"--------------space---------------------"<<endl;
 
