@@ -1,0 +1,167 @@
+
+int j=2;
+real[int] dt(j), alpha(j);
+real [int] uH1(j),pL2er(j),RhoH1(j),divu(j),uL2er(j),RhoL2er(j), TH1(j),TL2er(j);
+real mu=1,kappa=1, g=-9.8, i=400,kaf=1,Ra=1; 
+for(int j1=0;j1<j;j1++)
+{
+real t=0;
+border C(t=0,2*pi){ x=cos(t); y=sin(t); }    
+mesh  Th = buildmesh(C(i)); 
+real h  = (2*pi)/i;
+ 
+      
+real cpu = clock(),cputime,epsi=1e-8; 
+
+fespace Xh(Th,P2);  Xh u1,u2, u10,u20,v1,v2,u1old=-y,u2old= x;//
+fespace Mh(Th,P1);  Mh p, q, pold=0,phiold,phi; 
+fespace Wh(Th,P2);  Wh Rho,  Rhoold=2+x, psi,  Rhostar;
+fespace Wwh(Th,P2); Wwh T,   Told=x-y, s ; 
+ 
+
+ dt[j1] = 1.0/(10.0*(2^j1));
+ alpha[j1]=1.0/dt[j1];  
+
+for (int m=0;m<=1/dt[j1]-1;m++)
+{
+t = t+dt[j1];
+
+func u1exact = -y*cos(t);
+func u2exact =  x*cos(t);
+func  pexact =  sin(x)*sin(y)*sin(t);
+func  Rhoexact = 2+x*cos(sin(t))+y*sin(sin(t));
+func Texact  = u1exact+ u2exact;
+
+// the differentials of the exact solutions
+
+func u1exactdx   = 0;
+func u1exactdy   = -cos(t);
+func u2exactdx   = cos(t);
+func u2exactdy   = 0;
+
+func Texactdx    = cos(t);
+func Texactdy    = -cos(t);
+
+func pexactdx    = cos(x)*sin(y)*sin(t);  
+func pexactdy    = sin(x)*cos(y)*sin(t); 
+func Rhoexactdx  = cos(sin(t));
+func Rhoexactdy  = sin(sin(t));
+
+func f1 =   Rhoexact*(y*sin(t)-x*(cos(t))^2)+ cos(x)*sin(y)*sin(t);
+func f2 =  -Rhoexact*(x*sin(t)+y*(cos(t))^2)+ sin(x)*cos(y)*sin(t)-Rhoexact*g;
+func f3 =  -Rhoexact*(x*cos(t)^2+y*cos(t)^2 + sin(t)*(x - y) ) ;
+/*
+solve CC1 ([Rho], [psi])  =//,solver=CG, ,solver=GMRES ,solver=Crout   
+     int2d(Th)( alpha[j1]*Rho*psi ) 
+    -int2d(Th)( alpha[j1]*convect([u1old,u2old],-dt[j1],Rhoold) *psi)
+      + on(C,Rho= 2+x*cos(sin(t))+y*sin(sin(t))) ; 
+  */
+ solve CC1 (Rho, psi)  =//,solver=CG, ,solver=GMRES ,solver=Crout   
+     int2d(Th)( alpha[j1]*Rho*psi  ) 
+   - int2d(Th)( alpha[j1]*Rhoold*psi ) 
+   + int2d(Th)( dx(Rho)*u1old*psi+dy(Rho)*u2old*psi)
+   + int2d(Th)(0.5*Rho*dx(u1old)*psi +0.5*Rho*dy(u2old)*psi ) // conserved form
+  + on(C,Rho= 2+x*cos(sin(t))+y*sin(sin(t))) ;  //boundary condition
+  
+
+
+Rhostar=0.5*(Rho+Rhoold);
+                   
+solve CC2 ([u1,u2],[v1,v2]) =  
+     int2d(Th)( alpha[j1]*Rhostar*(u1*v1+u2*v2) )  //dt(u) 
+   - int2d(Th)( alpha[j1]*Rhoold*(u1old*v1+u2old*v2)     ) //conserved form  
+   + int2d(Th)( mu*( dx(u1)*dx(v1)+dy(u1)*dy(v1)+dx(u2)*dx(v2)+dy(u2)*dy(v2) )   )  //a(u,v)
+   + int2d(Th)( Rho*(u1old*v1*dx(u1)+u2old*v1*dy(u1)+u1old*v2*dx(u2)+u2old*v2*dy(u2)) )//3 linear terms
+   + int2d(Th)( 0.5* ( Rho*dx(u1old)+Rho*dy(u2old) +u1old*dx(Rho)+u2old*dy(Rho) )*(u1*v1+u2*v2) )
+  // + int2d(Th)( 0.5* ( u1old*dx(Rho)+u2old*dy(Rho) )*(u1*v1+u2*v2) )
+   - int2d(Th)( (dx(v1)+dy(v2))*(pold) )  //d(v,p)+phiold
+   - int2d(Th)(f1*v1+f2*v2+Rho*v2*g*Ra)   
+    + on(C,u1=-y*cos(t),u2=x*cos(t)); 
+    
+
+solve CC3 ([phi], [q])  = 
+      int2d(Th)(dx(phi)*dx(q)+dy(phi)*dy(q))
+    + int2d(Th)(epsi*phi*q )
+    - int2d(Th)(alpha[j1]*kaf* (u1*dx(q)+u2*dy(q)));
+
+//p=pold+phi-mu*(dx(u1)+dy(u2));
+ p= phi;
+
+solve CC5([T],[s]) = 
+     int2d(Th)( alpha[j1]*Rhostar*(T*s ) )  //dt(T) 
+   - int2d(Th)( alpha[j1]*Rhoold*(Told*s) )   
+   + int2d(Th)( kappa*(dx(T)*dx(s)+dy(T)*dy(s)  )   )  //a(T,tt)
+   + int2d(Th)( Rho*(u1 *dx(T)*s+u2*dy(T)*s ) )//3 linear terms
+   + int2d(Th)( 0.5*(Rho*dx(u1)+Rho*dy(u2)+u1*dx(Rho)+u2*dy(Rho) )*(T*s) )
+   - int2d(Th) (f3*s)
+   + on(C,T= x*cos(t)-y*cos(t));
+     
+ u1old = u1;
+ u2old = u2;
+phiold = phi;
+  pold = p;
+Rhoold = Rho;
+ Told  = T;
+                  
+ 
+RhoH1[j1]   = sqrt(int2d(Th)((dx(Rho)-Rhoexactdx)^2+(dy(Rho)-Rhoexactdy)^2))/sqrt(int2d(Th)(Rhoexactdx^2+Rhoexactdy^2));
+RhoL2er[j1] = sqrt(int2d(Th)((Rho- Rhoexact)^2))/sqrt(int2d(Th)( Rhoexact^2));
+
+uH1[j1]     = sqrt(int2d(Th)((dx(u1)-u1exactdx)^2+(dy(u1)-u1exactdy)^2+(dx(u2)-u2exactdx)^2+(dy(u2)-u2exactdy)^2))/sqrt(int2d(Th)(u1exactdx^2+u2exactdx^2+u1exactdy^2+u2exactdy^2));
+uL2er[j1]   = sqrt(int2d(Th)((u1-u1exact)^2+(u2-u2exact)^2)  )/sqrt(int2d(Th)(u1exact^2+u2exact^2));
+pL2er[j1]   = sqrt(int2d(Th)((p-pexact)^2))/sqrt(int2d(Th)(pexact^2));
+
+TH1[j1]     = sqrt(int2d(Th)((dx(T)-Texactdx)^2+(dy(T)-Texactdy)^2))/sqrt(int2d(Th)(Texactdx^2+Texactdy^2));
+TL2er[j1]   = sqrt(int2d(Th)((T- Texact)^2))/sqrt(int2d(Th)( Texact^2));
+
+divu[j1]    = int2d(Th)(abs((dx(u1)+dy(u2))));
+
+cout << "dt="<< dt[j1]<<" t="<< t<<"j="<<j1<< endl;
+
+cout<<"rho---H1 relative error:  "<<RhoH1[j1] <<endl;
+cout<<"rho---L2 relative error:  "<<RhoL2er[j1] <<endl;
+cout<<"U-----H1 relative error:  "<<uH1[j1] <<endl;
+cout<<"U-----L2 relative error:  "<<uL2er[j1] <<endl;
+cout<<"P-----L2 relative error:  "<<pL2er[j1] <<endl;
+cout<<"T-----H1 relative error:  "<<TH1[j1] <<endl;
+cout<<"T-----L2 relative error:  "<<TL2er[j1] <<endl;
+cout<<"divu:  "<<divu[j1] <<endl;
+plot([u1,u2]);
+plot(p);
+plot(Rho);
+
+}
+cout<<"####################"<<endl;
+cout<<uH1.max<<endl;
+cout<<RhoH1.max<<endl;
+cout<<clock()-cpu<<endl;
+
+
+}
+cout<<"-----------------------------------"<<endl;
+cout<<"dt"<<"  "<<"RhoH1"<<"  "<<"RhoL2er"<<"  "<<"uH1"<<"   "<<"uL2er"<<"   "<<"pL2err" <<"  "<<"TH1"<<"   "<<"TuL2er" <<"   "<<"div u"   <<endl;
+
+
+for (int J1=0; J1<j; J1++)
+{
+cout<<dt[J1]<<"   "<<RhoH1[J1]<<"    "<< RhoL2er[J1]<<"    "<<uH1[J1]<<"    "<< uL2er[J1]<<"       "<< pL2er[J1]<<"   "<<TH1[J1]<<"    "<< TL2er[J1] <<"    "<< divu[J1]  <<endl;
+
+}
+
+
+cout<<"--------------time---------------------"<<endl;
+for (int J1=0; J1<j-1; J1++)
+{
+cout <<dt[J1]<<"     "<< log(RhoH1[J1]/RhoH1[J1+1])/log(dt[J1]/dt[J1+1]) <<"   "<< log(RhoL2er[J1]/RhoL2er[J1+1])/log(dt[J1]/dt[J1+1]) <<"   "<< log(uH1[J1]/uH1[J1+1])/log(dt[J1]/dt[J1+1]) <<"        "<< log(uL2er[J1]/uL2er[J1+1])/log(dt[J1]/dt[J1+1]) <<"       "<< log(pL2er[J1]/pL2er[J1+1])/log(dt[J1]/dt[J1+1]) <<"   "<< log(TH1[J1]/TH1[J1+1])/log(dt[J1]/dt[J1+1]) <<"        "<< log(TL2er[J1]/TL2er[J1+1])/log(dt[J1]/dt[J1+1])  <<endl;
+ 
+}
+
+
+/*
+cout<<"--------------time---------------------"<<endl;
+for (int i1=0; i1<i-1; i1++)
+{
+cout <<t<<"          "<< log(uH1err[i1]/uH1err[i1+1])/log(dt[i1]/dt[i1+1]) <<"        "<<log(BH1err[i1]/BH1err[i1+1])/log(dt[i1]/dt[i1+1])<<endl;
+ 
+}
+*/
