@@ -1,7 +1,7 @@
-int j=3;
+int j=4;
 real[int] dt(j), alpha(j),dh(j);
 real [int] uH1(j),pL2er(j),divu(j),uL2er(j),TL2er(j), alltime(j);
-real nu=1,Tend=0.1,lamda=1,mu1=0.1,mu2=0.2,kappa1=0.3,kappa2=0.5;
+real nu=1,Tend=0.1,lamda=1,mu1=0.6,mu2=0.5,kappa1=0.7,kappa2=0.8;
 /////////////////////////////////
 func u1exact = 10*x^2*(x-1)^2*y*(y-1)*(2*y-1);  //*cos(t);
 func u2exact =-10*x*(x-1)*(2*x-1)*y^2*(y-1)^2;  //*cos(t);
@@ -48,7 +48,7 @@ for(int j1=0;j1<j;j1++)
 { 
   real t=0;
   real N;
-  N=5*(j1+1);
+  N=10*2^(j1);
   dh[j1]=1/N;
 
    
@@ -57,12 +57,12 @@ mesh  Th = square(N,N);
       
 real cpu = clock(),cputime,epsi=1e-8; 
 
-fespace Xh(Th,P2);  Xh u1,u2,v1,v2,u1old=10*x^2*(x-1)^2*y*(y-1)*(2*y-1),u2old= -10*y^2*(y-1)^2*x*(x-1)*(2*x-1);//
+fespace Xh(Th,P1b);  Xh u1,u2,v1,v2,u1old=10*x^2*(x-1)^2*y*(y-1)*(2*y-1),u2old= -10*y^2*(y-1)^2*x*(x-1)*(2*x-1);//
 fespace Mh(Th,P1);  Mh p, q, pold=10*(2*x-1)*(2*y-1),phiold,phi; 
-fespace WTh(Th,P2); WTh T,w,Told=Texact;
+fespace WTh(Th,P1); WTh T,w,Told=Texact;
  
 
- dt[j1] = dh[j1]^2;
+ dt[j1] = dh[j1];
  alpha[j1]=1/dt[j1];  
 
 for (int m=0;m<=Tend/dt[j1];m++)
@@ -154,6 +154,15 @@ cout<<dh[0]<<"        "<<"-        "<<"        "<<"            "<<"-        "<<"
 
 for (int i1=0; i1<j-1; i1++)
 {
-cout <<dh[i1+1]<<"        "<<log(uH1[i1]/uH1[i1+1])/log(dh[i1]/dh[i1+1]) <<"        "<<log(uL2er[i1]/uL2er[i1+1])/log(dh[i1]/dh[i1+1])<<"            "<<log(pL2er[i1]/pL2er[i1+1])/log(dh[i1]/dh[i1+1]) <<"         "<< log(TL2er[i1]/TL2er[i1+1])/log(dh[i1]/dh[i1+1])  <<endl;
+cout <<dh[i1+1]<<"        "<<log(uL2er[i1]/uL2er[i1+1])/log(dh[i1]/dh[i1+1]) <<"        "<<log(uH1[i1]/uH1[i1+1])/log(dh[i1]/dh[i1+1])<<"            "<<log(pL2er[i1]/pL2er[i1+1])/log(dh[i1]/dh[i1+1]) <<"         "<< log(TL2er[i1]/TL2er[i1+1])/log(dh[i1]/dh[i1+1])  <<endl;
  
 }
+
+
+cout<<"dh"<<"        "<<"        uL2e"<<"   "<<"            "<<"uH1e"<<"            "<<"pL2e" <<"     "<<"TL2e"<<endl;
+for (int i1=0; i1<=j; i1++)
+{
+cout <<dh[i1]<<"        "<<uL2er[i1] <<"        "<<uH1[i1] <<"            "<<pL2er[i1] <<"         "<< TL2er[i1] <<endl;
+ 
+}
+
